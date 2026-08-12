@@ -1,0 +1,9 @@
+# Use the existing `dc` Conda environment because it contains the ARX5 SDK and
+# pyrealsense2. These are the remaining lightweight client dependencies.
+numpy
+opencv-python
+pillow
+websockets>=11
+msgpack>=1.0.5
+typing-extensions
+
