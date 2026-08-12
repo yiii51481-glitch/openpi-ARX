@@ -357,8 +357,8 @@ class LeRobotLiberoDataConfig(DataConfigFactory):
 
 
 @dataclasses.dataclass(frozen=True)
-class LeRobotARX5LeftEefDataConfig(DataConfigFactory):
-    """Data transforms for the local 10-D absolute-EFF-pose ARX5 dataset."""
+class LeRobotARX5SingleArmEefDataConfig(DataConfigFactory):
+    """Data transforms for the local 10-D absolute-EEF-pose ARX5 single-arm dataset."""
 
     @override
     def create(self, assets_dirs: pathlib.Path, model_config: _model.BaseModelConfig) -> DataConfig:
@@ -376,8 +376,8 @@ class LeRobotARX5LeftEefDataConfig(DataConfigFactory):
             ]
         )
         data_transforms = _transforms.Group(
-            inputs=[arx5_policy.ARX5LeftEefInputs(model_type=model_config.model_type)],
-            outputs=[arx5_policy.ARX5LeftEefOutputs()],
+            inputs=[arx5_policy.ARX5SingleArmEefInputs(model_type=model_config.model_type)],
+            outputs=[arx5_policy.ARX5SingleArmEefOutputs()],
         )
         # State and actions are absolute EEF poses. Do not apply DeltaActions: subtracting a 6-D
         # rotation representation is not a valid pose operation and would violate the requested action space.
@@ -388,6 +388,9 @@ class LeRobotARX5LeftEefDataConfig(DataConfigFactory):
             data_transforms=data_transforms,
             model_transforms=model_transforms,
         )
+
+
+LeRobotARX5LeftEefDataConfig = LeRobotARX5SingleArmEefDataConfig
 
 
 @dataclasses.dataclass(frozen=True)
@@ -796,13 +799,13 @@ _CONFIGS = [
         pytorch_weight_path="/path/to/your/pytorch_weight_path",
         num_train_steps=30_000,
     ),
-    # Single-left-arm ARX5 fine-tuning on the locally converted pick-bread dataset. The dataset
+    # Single-arm ARX5 fine-tuning on the locally converted pick-bread dataset. The dataset
     # intentionally uses fresh normalization statistics because its 10-D EEF-pose space differs
     # from the 14-D bimanual ARX checkpoint statistics.
     TrainConfig(
         name="pi05_arx5_pick_bread",
         model=pi0_config.Pi0Config(pi05=True, action_horizon=10, discrete_state_input=False),
-        data=LeRobotARX5LeftEefDataConfig(
+        data=LeRobotARX5SingleArmEefDataConfig(
             repo_id="local/pick_bread_arx5_left_eef",
             base_config=DataConfig(prompt_from_task=True),
         ),
@@ -829,7 +832,7 @@ _CONFIGS = [
             paligemma_variant="gemma_2b_lora",
             action_expert_variant="gemma_300m_lora",
         ),
-        data=LeRobotARX5LeftEefDataConfig(
+        data=LeRobotARX5SingleArmEefDataConfig(
             repo_id="local/pick_bread_arx5_left_eef",
             base_config=DataConfig(prompt_from_task=True),
         ),
@@ -847,10 +850,10 @@ _CONFIGS = [
             paligemma_variant="gemma_2b_lora", action_expert_variant="gemma_300m_lora"
         ).get_freeze_filter(),
         ema_decay=None,
-        # This server runs training in a non-interactive tmux session. Disable W&B unless an API key is configured.
+        # Disable W&B by default for reproducible non-interactive training runs.
         wandb_enabled=False,
     ),
-    # Three-task ARX5 left-arm LoRA fine-tuning. The local dataset combines the first 100
+    # Three-task ARX5 single-arm LoRA fine-tuning. The local dataset combines the first 100
     # pick-bread episodes with all pick-mango and pick-bottle episodes. It has separate
     # normalization statistics because its task distribution differs from the bread-only dataset.
     TrainConfig(
@@ -862,7 +865,7 @@ _CONFIGS = [
             paligemma_variant="gemma_2b_lora",
             action_expert_variant="gemma_300m_lora",
         ),
-        data=LeRobotARX5LeftEefDataConfig(
+        data=LeRobotARX5SingleArmEefDataConfig(
             repo_id="local/pick_bread_mango_bottle_arx5_left_eef",
             base_config=DataConfig(prompt_from_task=True),
         ),
@@ -882,7 +885,7 @@ _CONFIGS = [
         ema_decay=None,
         wandb_enabled=False,
     ),
-    # Six-task ARX5 left-arm LoRA fine-tuning. This dataset combines the first 100
+    # Six-task ARX5 single-arm LoRA fine-tuning. This dataset combines the first 100
     # pick-bread episodes with all pick-mango, pick-bottle, pick-cup, pick-carrot,
     # and pick-pen episodes, so it uses separate normalization statistics.
     TrainConfig(
@@ -894,7 +897,7 @@ _CONFIGS = [
             paligemma_variant="gemma_2b_lora",
             action_expert_variant="gemma_300m_lora",
         ),
-        data=LeRobotARX5LeftEefDataConfig(
+        data=LeRobotARX5SingleArmEefDataConfig(
             repo_id="local/pick_six_tasks_arx5_left_eef",
             base_config=DataConfig(prompt_from_task=True),
         ),

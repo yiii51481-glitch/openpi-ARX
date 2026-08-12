@@ -3,7 +3,7 @@ set -Eeuo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$ROOT_DIR/../.." && pwd)"
-CONDA_SH="${CONDA_SH:-你的conda环境路径.sh}"
+: "${CONDA_SH:?Set CONDA_SH to the path of conda.sh for the ARX5 runtime environment}"
 CONDA_ENV="${CONDA_ENV:-dc}"
 OPENPI_CLIENT_SRC="${OPENPI_CLIENT_SRC:-$PROJECT_ROOT/packages/openpi-client/src}"
 
